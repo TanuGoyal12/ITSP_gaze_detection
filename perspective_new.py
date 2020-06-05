@@ -1,6 +1,15 @@
 import cv2
 import numpy as np
 
+l_b=np.array([5,60,50])
+u_b=np.array([25,255,255])                                  # lower bound and upper bound for orange color
+l_b1=np.array([25,40,40])                                   
+u_b1=np.array([45,255,255])                #lower and upper bound of yellow fluorescent            
+l_b2=np.array([0,0,0])
+u_b2=np.array([255,255,20])                #for black though i havn't used it
+
+kernal=np.ones((3,3),np.uint8)
+
 
 def rewrite(l):
     l1=l.copy()
@@ -18,19 +27,11 @@ def rewrite(l):
     for i in range(2):
         l1[:,i]=l[:,i]
     return l1
-
-l_b=np.array([5,60,50])
-u_b=np.array([25,255,255])                                  # lower bound and upper bound for orange color
-l_b1=np.array([25,40,40])                                   
-u_b1=np.array([45,255,255])                #lower and upper bound of yellow fluorescent            
-l_b2=np.array([0,0,0])
-u_b2=np.array([255,255,20])                #for black though i havn't used it
-
-kernal=np.ones((3,3),np.uint8)
-
-def get_perspective(img, res1 = None):
-    img = cv2.GaussianBlur(img,(5,5),0)
-    hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    
+    
+def get_perspective(img):
+    img1 = cv2.GaussianBlur(img,(5,5),0)
+    hsv=cv2.cvtColor(img1, cv2.COLOR_BGR2HSV)
 
     mask=cv2.inRange(hsv,l_b,u_b)                         
                                                           
@@ -42,29 +43,33 @@ def get_perspective(img, res1 = None):
     dilation1= cv2.dilate(erode1, kernal, iterations=7)
 
     mask2=cv2.inRange(hsv,l_b2,u_b2)                      
-    res0=cv2.bitwise_and(dilation1, dilation)             
-    
-    if res1:
-        res=cv2.bitwise_and(res1, res0)               # bitwise and on two consecutive frames reduces noise        
-    res1=res0                                     # reset res1 for the next iteration
+    result = cv2.bitwise_and(dilation1, dilation)
+    #print(result)
 
-    dontcare,contours,heirarchy=cv2.findContours(res,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    try:
+        dontcare,contours,heirarchy = cv2.findContours(result ,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    except:
+        #print("Contours Not found")
+        return None
+
     if(len(contours)<4):                   # skip the frame in which the number of marks detected in <4; note that there can be marks inside the frame of screen also
-        return None                           
-    M=cv2.moments(contours[0])             #
-    if (M['m00']==0):                      #
-        return None                           #
-    cx = int(M['m10']/M['m00'])            #
-    cy = int(M['m01']/M['m00'])            #
+        #print("Not enough contours found")
+        return None
+
+    M=cv2.moments(contours[0])
+    if (M['m00']==0):                      
+        return None                        
+    cx = int(M['m10']/M['m00'])            
+    cy = int(M['m01']/M['m00'])            
     Union = [[cx,cy]]                      #  each marks is a collection of adjacent white pixels         
                                            #  Union is the set of centroids of each contour
     for contour in contours[1:]:           #
         M=cv2.moments(contour)             #
         if (M['m00']==0):                  #
-            return None                       #
+            return None                    #
         cx = int(M['m10']/M['m00'])        #
         cy = int(M['m01']/M['m00'])        #
-        Union= np.concatenate(([[cx,cy]],Union))#
+        Union= np.concatenate(([[cx,cy]],Union))
     
     pts = cv2.convexHull(np.array(Union));     #
     pts1=pts[0]                                #
@@ -81,7 +86,7 @@ def get_perspective(img, res1 = None):
 
     M = cv2.getPerspectiveTransform(pts1, pts2)       #Transformation Matrix
 
-    return (pts1, M, res1)
+    return (pts1, M)
 
 def map_focus_point(point, M): #point can be a tuple or a list, M is the transformation matrix
     point.append(1)
