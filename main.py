@@ -61,7 +61,7 @@ def main():
     temp = get_data(0)
     while not temp:
         temp = get_data(0)
-    np.append(data, [temp], axis = 0)
+    np.append(data, np.array([temp]), axis = 0)
     print("Done. Relax for 5 seconds")
     time.sleep(5)
 
@@ -70,7 +70,7 @@ def main():
     temp = get_data(2)
     while not temp:
         temp = get_data(2)
-    np.append(data, [temp], axis = 0)
+    np.append(data, np.array([temp]), axis = 0)
     print("Done. Relax for 5 seconds")
     time.sleep(5)
 
@@ -79,7 +79,7 @@ def main():
     temp = get_data(1)
     while not temp:
         temp = get_data(1)
-    np.append(data, [temp], axis = 0)
+    np.append(data, np.array([temp]), axis = 0)
     print("Done. Relax for 5 seconds")
     time.sleep(5)
 
@@ -88,7 +88,7 @@ def main():
     temp = get_data(3)
     while not temp:
         temp = get_data(3)
-    np.append(data, [temp], axis = 0)
+    np.append(data, np.array([temp]), axis = 0)
     print("Done. Relax for 5 seconds")
     time.sleep(5)
 
@@ -97,7 +97,7 @@ def main():
     temp = get_data(4)
     while not temp:
         temp = get_data(4)
-    np.append(data, [temp], axis = 0)
+    np.append(data, np.array([temp]), axis = 0)
     print("Done. Relax for 5 seconds")
     time.sleep(5)
 
@@ -106,7 +106,7 @@ def main():
     temp = get_data(5)
     while not temp:
         temp = get_data(5)
-    np.append(data, [temp], axis = 0)
+    np.append(data, np.array([temp]), axis = 0)
     
     print("Done. Now, let's train an ML model to estimate your gaze")
 
