@@ -8,6 +8,7 @@ import pyautogui as gui
 import requests
 import threading
 import time
+from sys import exit
 
 ip_face = ''
 ip_screen = ''
@@ -111,4 +112,63 @@ def main():
     print("Done. Now, let's train an ML model to estimate your gaze")
 
     reg_x , reg_y = eye_center_new.get_models(data)
-    print("Model has been trained.")
+    print("Model has been trained. You can now minimize this window")
+
+    last_closed = -10    #last time the user had blinked(closed) his/her eye
+    last_open = -10    #last time the user's eye was open
+
+    screen_height , screen_width = gui.size()
+
+    try:
+        while 1:
+            req_1 = list()
+            req_2 = list()
+            t1 = threading.Thread(target = make_request, args = (req_1, ip_face))
+            t2 = threading.Thread(target = make_request, args = (req_2, ip_screen,))
+
+            t1.start()
+            t2.start()
+            t1.join()
+            t2.join()
+
+            timer = time.time()
+
+            req_1 = req_1[0]
+            req_2 = req_2[0]
+
+            img_face , img_screen = np.frombuffer(req_1, np.uint8) , np.frombuffer(req_2, np.uint8)
+            img_face , img_screen = cv2.imdecode(img_face, cv2.IMREAD_COLOR) , cv2.imdecode(img_screen, cv2.IMREAD_COLOR)
+
+            if not eye_gestures_new.is_open(img_face) :
+                if ((timer - last_closed) < 1.) and (last_open > last_closed):  #double blink in less than 1 second.
+                    #On an average, we blink our eyes once in every 4 secs.
+                    gui.click()
+
+                last_closed = timer
+
+            else:
+                pupil_center = pupil_centre_new.pupil_center(img_face)
+                screen_img_point = [(reg_x.predict(np.array([pupil_center])))[0], (reg_y.predict(np.array([pupil_center])))[0]]
+
+                perspective = perspective_new.get_perspective(img_screen, screen_height, screen_width)
+                if not perspective:
+                    last_open = timer
+                    continue
+                last_open = timer
+
+                transformation_matrix = perspective[1]
+                mapped_point = perspective_new.map_focus_point(screen_img_point, transformation_matrix)
+
+                if not mapped_point:  #div. by 0(I don't think it's practically possible. Still, just in case)
+                    continue
+                elif (mapped_point[0] < 0) or (mapped_point[1] < 0) or (int(mapped_point[0]) >= screen_width) or (int(mapped_point[1]) >= screen_height):
+                    #mapped point is outside the screen
+                    continue
+
+                gui.moveTo(int(mapped_point[0]), int(mapped_point[1])
+
+    except KeyboardInterrupt:
+        exit()
+
+
+main()

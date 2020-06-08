@@ -29,7 +29,7 @@ def rewrite(l):
     return l1
     
     
-def get_perspective(img):
+def get_perspective(img, height = 680, width = 380):
     img1 = cv2.GaussianBlur(img,(5,5),0)
     hsv=cv2.cvtColor(img1, cv2.COLOR_BGR2HSV)
 
@@ -82,7 +82,7 @@ def get_perspective(img):
     pts1 = np.float32(pts1)
     pts1 = rewrite(pts1)                  # the rewrite function orders the points in pst1 
 
-    pts2 = np.float32([[0, 0], [0, 380], [680, 0], [680, 380]])
+    pts2 = np.float32([[0, 0], [0, width], [height, 0], [height, width]])
 
     M = cv2.getPerspectiveTransform(pts1, pts2)       #Transformation Matrix
 
