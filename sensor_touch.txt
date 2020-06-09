@@ -1,0 +1,45 @@
+int threshold = 40; // this we will have to define accordingly
+bool touch1detected = false; // initially the touch detcted is false
+unsigned long startTime1;
+
+// a function for checking if that particular pin has been touched or not 
+void gotTouch(){
+ touch1detected = true;
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000); // give time to bring up serial monitor
+  printf("\n ESP32 Touch Interrupt Test\n");
+   startTime1 = millis();
+  touchAttachInterrupt(T2, gotTouch, threshold); // can use T0 ,T1... as well ( as total 10 touch pins are there)
+ 
+}
+
+void loop(){
+// running this code after every 5 seconds
+  if (millis() - startTime1 >= 5000) {
+ if(touch1detected){
+ startTime1 = millis();
+    touch1detected = false;  // set the touch detected to false for next loop
+    Serial.println("Touch 1 detected");
+// perform the required function:
+
+  }
+else{
+//  touch not detected so put the microcontroller to deep sleep
+esp_sleep_enable_touchpad_wakeup(); // this will allow to awaken the microcontroller on touching the pin
+esp_deep_sleep_start();
+}
+
+
+     }
+ 
+}
+
+
+
+
+
+
+   
