@@ -1,5 +1,5 @@
-#include<iostream>
-#include<fstream>
+#include <iostream>
+
 using namespace std;
 
 int pow(int a,int b){
@@ -9,6 +9,7 @@ int pow(int a,int b){
 	}
 	return ans;
 }
+	
 
 void prod(double M1[], double M2[],double target[], int m, int n, int p){
 	for (int i=0;i<m;i++){
@@ -26,6 +27,7 @@ void prod(double M1[], double M2[],double target[], int m, int n, int p){
 
 }
 
+
 void transpose(double M[],double target[], int m, int n){
 	for (int i=0;i<m;i++){
 		for (int j=0;j<n;j++){
@@ -34,6 +36,7 @@ void transpose(double M[],double target[], int m, int n){
 	}
 	return;
 }
+
 
 double det(double M[], int n){
 	double ans;
@@ -59,6 +62,7 @@ double det(double M[], int n){
 	return ans;
 
 }
+
 
 void inverse(double M[], double target[], int n){
 	double p;
@@ -95,61 +99,40 @@ void inverse(double M[], double target[], int n){
 	}
 }
 
-int main(){
-	int d;
-	d = 50;
-	double X[2*d],y1[d],y2[d],X_ag[6*d],T1[6*d],T2[6*6],T3[6*6],T4[6],Theta[6];
 
-	ifstream file("me2.txt");
-    char data;
-    int n = 0;
-    while (n < 50){
-        //cout<<" ="<<n<<"= ";
-        for (int i=0; i<4; i++){
-            file>>data;
-            int res = 0;
+void get_perspective(int x1,int y1, int x2,int y2, int x3,int y3, int x4,int y4, int x_1,int y_1, int x_2,int y_2, int x_3,int y_3, int x_4,int y_4, double M[])
+{
+	double basis_1[] = {x1, x2, x3, y1, y2, y3, 1, 1, 1};
+	double v_4_1[] = {x4, y4, 1};
 
-            while(data != ',' && data != '\n'){
-                if (data =='1' || data =='2' || data =='3' ||data =='4' ||data =='5' ||data =='6' ||data =='7' ||data =='8' ||data =='9' ||data =='0' ){
-                   int b = data - 48;
-                   res = res*10+b;
-                }
-                file>>data;
-            }
-            if (i==0 || i==1){
-            	X[n*2 + i] = res;
-            }
-            if (i==2){
-            	y1[n] = res;
-            }
-            if (i==3){
-            	y2[n] = res;
-            }
-        }
+	double basis_2[] = {x_1, x_2, x_3, y_1, y_2, y_3, 1, 1, 1};
+	double v_4_2[] = {x_4, y_4, 1};
 
-        n++;
-    }
-    file.close();
+	double basis_1_inv[9], weights_1[3];
+	inverse(basis_1, basis_1_inv, 3);
+	prod(basis_1_inv, v_4_1, weights_1, 3, 3, 1);
+	double diag_1[] = {weights_1[0], 0, 0,  0, weights_1[1], 0,  0, 0, weights_1[2]};
+	double A[9];
+	prod(basis_1, diag_1, A, 3, 3, 1);
 
-    for (int i=0;i<d;i++){
-		X_ag[i*6 + 0] = 1.0;
-		X_ag[i*6 + 1] = X[i*2 + 0];
-		X_ag[i*6 + 2] = X[i*2 + 1];
-		X_ag[i*6 + 3] = X[i*2 + 0]*X[i*2 + 0];
-		X_ag[i*6 + 4] = X[i*2 + 0]*X[i*2 + 1];
-		X_ag[i*6 + 5] = X[i*2 + 1]*X[i*2 + 1];
-	}
+	double basis_2_inv[9], weights_2[3];
+	inverse(basis_2, basis_2_inv, 3);
+	prod(basis_2_inv, v_4_2, weights_2, 3, 3, 1);
+	double diag_2[] = {weights_2[0], 0, 0,  0, weights_2[1], 0,  0, 0, weights_2[2]};
+	double B[9];
+	prod(basis_2, diag_2, B, 3, 3, 1);
 
-	transpose(X_ag,T1,d,6);
-	prod(T1,X_ag,T2,6,d,6);
-	inverse(T2,T3,6);
-	prod(T1,y1,T4,6,d,1);
-	prod(T3,T4,Theta,6,6,1);
+	double A_inv[9];
+	inverse(A, A_inv, 3);
+	prod(B, A_inv, M, 3, 3, 3);
 
-	for (int i=0;i<6;i++){
-		cout<<Theta[i]<<endl;
-	}
+}
 
+void map_focus_point(double point[], double M[], double mapped_point[])
+{
+	double product[3];
+	prod(M, point, product, 3, 3, 1);
 
-	return 0;
+	mapped_point[0] = (product[0] / product[2]);
+	mapped_point[1] = (product[1] / product[2]);
 }
